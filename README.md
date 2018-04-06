@@ -1,5 +1,6 @@
 Send me feedback on Discord: Naim#8408
-For my intentions AI_Trickstar Burn is finished (until i learn how to use battle commands properly)
+
+For my intentions AI_Trickstar Burn is finished (until i learn how to use battle commands properly).
 I'll be moving to AI_Trickstars now.
 
 Instructions in Portuguese and English:
