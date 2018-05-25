@@ -5,15 +5,19 @@
 60222213	--Raphion
 91712985	--Kamion
 92435533	--Lazion
+
 13893596	--Exodious
+27107590	--Time Maiden
+
 14558127	--Ash Blossom
 59438930	--Ghost ogre
-27107590	--Time Maiden
+
 2295440	--One for One
 34236961	--Ante
 51630558	--Advanced Draw
 28890974	--Celestial Transformation
 43898403	--Twin Twisters
+
 10045474	--Infinite Impermenance
 40605147	--Solemn Strike
 41420027	--Solemn Warning
@@ -45,7 +49,7 @@ AI.Chat("Scripted by Naim Santos")
 -- deck.ChainOrder           = TimelordChainOrder --Not implemented (i need to find a way to finish Droll+Reincarnation loop)
 -- deck.BattleCommand        = TimelordBattleCommands --não implementada corretamente
 --  deck.EffectYesNo          = TimelordYesNo --called when an effect makes the AI choose Y/N
---  deck.Position             = TimelordsPosition   --called when the Ai has to decide which position to summon a monster
+deck.Position             = TimelordPosition   --called when the Ai has to decide which position to summon a monster
 end
 TimelordIdentifier = 7733560 -- Michion the Timelord
 DECK_Timelord = NewDeck("Timelord",TimelordIdentifier,TimelordStartup)
@@ -59,8 +63,14 @@ function TimelordInit(cards)
 	local SetST = cards.st_setable_cards
 	--During main phase, the AI tries to activate the following cards.
 	if HasIDNotNegated(Act,2295440,Use141) then --using One for One)
-		return COMMAND_ACTIVATE,CurrentIndex --
+		return COMMAND_ACTIVATE,CurrentIndex
 	end
+	if HasIDNotNegated(Act,34236961,UseAnte) then
+		return COMMAND_ACTIVATE,CurrentIndex
+	end
+	if HasID(SpSum,27107590) and SummonMaiden(1) then
+		return {COMMAND_SPECIAL_SUMMON,CurrentIndex}
+  end
 	
 end
 
@@ -124,59 +134,8 @@ TimelordSetBlacklist={
 function TimelordPosition(id,available)
 	local battletargets = OppMon() --i took this for Majespecters, i suppose. It's used in CanWinBattle but i need a funnction with battle commands @_@
 	local result --this will hold the position the monster should be summoned on
-	if id==35199656 then --TRICKSTAR LYCO
-		if Duel.GetTurnPlayer()==player_ai then --AI's turn
-			if Duel.GetTurnCount()==1
-			then 
-			result=POS_FACEUP_ATTACK
-			elseif CanWinBattle(c,battletargets) then --can win battle
-			result=POS_FACEUP_ATTACK
-			elseif CardsMatchingFilter(OppMon())==0 then --no monsters
-			result=POS_FACEUP_ATTACK
-			else
-			result=POS_FACEUP_DEFENSE
-			end
-		else  --OPPONENT's turn
-			if Duel.GetCurrentPhase()>PHASE_BATTLE then --Battle phase has passed
-			result=POS_FACEUP_ATTACK
-			else
-			result=POS_FACEUP_DEFENSE
-			end
-		end
-	elseif  id==98700941 then --TRICKSTAR LILYBELL
-		if Duel.GetTurnPlayer()==player_ai then --AI's turn
-			if Duel.GetCurrentPhase()<PHASE_MAIN2 and GlobalBPAllowed --can still have battle
-			then
-			result=POS_FACEUP_ATTACK
-			else
-			result=POS_FACEUP_DEFENSE
-			end
-		else 	--OPPONENT's turn
-			if Duel.GetCurrentPhase()<PHASE_MAIN2 then --opponent can still battle
-			result=POS_FACEUP_DEFENSE
-			else
-			result=POS_FACEUP_ATTACK
-			end
-		end
-	elseif  id==61283655 then --TRICKSTAR CANDINA
-		if Duel.GetTurnPlayer()==player_ai then  --AI's turn
-			if Duel.GetTurnCount()==1 --turn 1, for pressure XD
-			then 
-			result=POS_FACEUP_ATTACK
-			elseif CanWinBattle(c,battletargets) then 
-			result=POS_FACEUP_ATTACK
-			elseif CardsMatchingFilter(OppMon())==0 then --no monsters
-			result=POS_FACEUP_ATTACK
-			end
-		else		--OPPONENT's turn
-			if  Duel.GetCurrentPhase()>PHASE_BATTLE then
-			result=POS_FACEUP_ATTACK
-			elseif OppHasFaceupMonster(1800) then --to see if opponent has a monster with ATK >= Candina's
-			result=POS_FACEUP_ATTACK
-			else
-			result=POS_FACEUP_DEFENSE
-			end
-		end
+	if id==35199656 then
+		result=POS_FACEUP_DEFENSE
 	end
 	return result
 end
@@ -212,34 +171,6 @@ function TimelordChain(cards)
 		GlobalCardMode = 1
 		return {1,CurrentIndex}
 	end
-	if HasIDNotNegated(cards,21076084,ReincarnationRegular) then --general usage of Reincarnation
-	GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,21076084,ReincarnationGraveChain) then --Using Reincarnation from the graveyard
-	GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,77561728,DisturbanceChain) then
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,36468556,CeasefireChain) then
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,09952083,ChainSummonChain) then
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,74519184,HandDesChain) then
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,94145021,DrollRegularChain) then --droll regular
-		GlobalCardMode = 1
-		return {1,CurrentIndex}	
-	end
 	if HasIDNotNegated(cards,59438930,GhostOgreChain) then --needs improvement (a table, maybe?)
 		GlobalCardMode = 1
 		return {1,CurrentIndex}	
@@ -248,21 +179,8 @@ function TimelordChain(cards)
 		GlobalCardMode = 1
 		return {1,CurrentIndex}	
 	end
-	if HasIDNotNegated(cards,21076084,ReincarnationInitializateDroll) then --initial reincarnation in Droll Reincarnation combo
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,21076084,ReincarnationCL1Droll) then --second reincarnation in the Droll Reincarnation combo
-		GlobalCardMode = 1
-		return {1,CurrentIndex}
-	end
-	if HasIDNotNegated(cards,94145021,DrollForReincarnation) then --Droll in the Droll Reincarnation combo
-		GlobalCardMode = 1
-		return {1,CurrentIndex}	
-	end
-	
 end
-TimelordChainlinks={ --meh
+TimelordChainlinks={
 21076084, --Reincarnation
 94145021, --Droll
 }
@@ -322,126 +240,7 @@ function LycoChain()
 	end
 return false
 end
-function UsableSetReincarnation(c)
-	return c.id==21076084 and FilterLocation(c,LOCATION_SZONE) and not FilterStatus(c,STATUS_SET_TURN)
-end
-function ReincarnationRegular(c)
-	if FilterLocation(c,LOCATION_GRAVE) then return false
-	else
-	return UnchainableCheck(21076084)
-	and (Duel.GetCurrentPhase()==PHASE_STANDBY	and CardsMatchingFilter(AIMon(),FilterID,35199656)>0) --lycos no campo
-	or RemovalCheck(21076084)
-	--and not ReincarnationForDroll()
-	end
-end
-function ReincarnationGraveChain(c)
-	if FilterLocation(c,LOCATION_GRAVE) then
-	Debug.Message("ReincarnationNo Grave: okay")
-		if	UnchainableCheck(21076084) then
-				if RemovalCheck(21076084) then
-					Debug.Message("Reincar grave: removalcheck")
-					return true
-				elseif	Duel.GetTurnPlayer()==1-player_ai then --OPPONENT'S TURN
-						if Duel.GetCurrentPhase()==PHASE_BATTLE
-						or Duel.GetCurrentPhase()==PHASE_END
-						then
-						return true	end
-				else--AI'S TURN
-						return NormalSummonCount(player_ai)>0 and Duel.GetCurrentPhase()<PHASE_MAIN2 and (HasID(AIHand(),35199656,true) or 
-						(CardsMatchingFilter(AIGrave(),FilterID,61283655)>1 and HasID(AIGrave(),98700941,true)))
-						--or CardsMatchingFilter(OppMon())==0 and Duel.GetCurrentPhase()==PHASE_BATTLE
-				end
-		end
-	else return false --if it's not in the graveyard, it will not activate
-	end
-end
-function DrollRegularChain()
-	if
-	UnchainableCheck(94145021) and	Duel.GetTurnPlayer()==1-player_ai and (not HasID(AIST(),74519184,true))
-	--only activates droll if it's not the AI's turn and hand destruction is not set
-	and not DrollForReincarnation()
-	then	return true
-	end
-	--	and HasID(AIHand(),35371948,true) --se Droll está na mao
-end
-function ReincarnationSameChain()
-  local e
-  for i=1,Duel.GetCurrentChain() do
-    e = Duel.GetChainInfo(i, CHAININFO_TRIGGERING_EFFECT)
-    if e and e:GetHandler():GetCode()==21076084 then
-	 return true
-	end
-  end
- return false
-end
-function ReincarnationInitializateDroll(c)
-if FilterLocation(c,LOCATION_GRAVE) then return false
-	else
-local e
-	if (Duel.GetCurrentPhase()==PHASE_STANDBY and Duel.GetTurnPlayer()==1-player_ai) and --OPPONENT'S TURN
-	HasID(AIHand(),94145021,true) and CardsMatchingFilter(AIST(),UsableSetReincarnation)>1
-	and not ReincarnationSameChain()
-	then return true
-	end
-end
-end
-function ReincarnationCL1Droll(c)
-	if FilterLocation(c,LOCATION_GRAVE) then return false
-	else
-	if (Duel.GetCurrentPhase()~=PHASE_DRAW and Duel.GetTurnPlayer()==1-player_ai) and not ReincarnationSameChain()
-	and Duel.CheckEvent(EVENT_TO_HAND)
-	-- and HasID(AIHand(),94145021,true)
-	 then return true
-	 end
-	end
-end
-function DrollForReincarnation()
-	if ReincarnationSameChain() then
-	return true
-	else return false
-end
-end
---the 4 functions above handle Droll Reincarnation loop
---But the chain link order is wrong
 
-
-function DisturbanceChain()
-	return UnchainableCheck(77561728) and (CardsMatchingFilter(AIMon(),FilterID,35199656)>0
-	or RemovalCheck(c) or RemovalCheck(35199656))
-end
-function CeasefireChain()
-return
-	UnchainableCheck(36468556)
-	and (RemovalCheck(77561728) 		--if it's going to be removed from the field
-	--(RemovalCheck(77561728)
-		or RemovalCheck(85562745)	--if Dark Room Será is going to be removed from the field
-		or CeasefireDamage()	--if the burn condition is fullfiled
-		)
-end
-
-
-function ChainSummonChain()
-return
-	UnchainableCheck(09952083)
-	and(
-	Duel.GetTurnPlayer()==player_ai
-	and
-	HasID(AIHand(),61283655,true) --check for Candinas
-	or (HasID(AiMon(),61283655,true) and HasID(AiHand(),74519184,true)) --Candina on the field, Lycos in hand
-	)
-end
-function HandDesChain()
-return
-	UnchainableCheck(74519184)
-	and	((RemovalCheck(74519184)
-	or   (HasID(AIMon(),35199656,true) and  RemovalCheck(74519184))  --if it's going to be removed from the field WHILE lyco is on the Field
-	or 	AI.GetPlayerLP(2) <= CardsMatchingFilter(AIMon(),FilterID,35199656)*400 ) --Lyco can burn for game
-	or (AI.GetPlayerLP(2) <=  CardsMatchingFilter(AIMon(),FilterID,35199656)*400 +  --lycos' damage
-	CardsMatchingFilter(AIST(),FilterID,85562745)*300*CardsMatchingFilter(AIMon(),FilterID,35199656) --dark room damage due to lyco's
-	)
-	or CardsMatchingFilter(AIHand(),TrickstarFilter)==0 --no Timelord cards in the hand
-	)
-end
 function AshBlossomChain()
 --This works checking the chain links in a chain using the "for" loop
 --If any of the chain links fullflis the condition, it returns true to chain Ash
@@ -467,72 +266,26 @@ function GhostOgreChain()
   end
  return false
 end
-function SummonCandina()
-return true
-end
-function SummonLyco()
-	if	(HasID(AIHand(),61283655,true) --candina in hand
-	or HasID(AIHand(),98700941,true)) --lily in hand
-	then return false
-	else return true
-	end
-end
-function SummonLily()
-	return HasID(AIHand(),61283655,false) --candina in hand
-	and CardsMatchingFilter(AIGrave(),FilterID,35199656)>0 --lyco in the graveyard
-	or (CardsMatchingFilter(AIGrave(),FilterID,61283655)>0 --candina in the grave + normal summons (usually due to Chain summoning)
-	and NormalSummonCount(player_ai)>0)
-end
-
-
-function UseLightStage(c,mode)
-  if mode == 1 -- activate from hand
-  and FilterLocation(c,LOCATION_HAND)
-  and not HasIDNotNegated(AIST(),c.id,true)
-  then
-    return true
-  end
-  if mode == 2 -- activate on field
-  and FilterLocation(c,LOCATION_ONFIELD) 
-  and FilterPosition(c,POS_FACEUP)
-  then
-    return true
-  end
-  if mode == 3 -- activate face-down
-  and FilterLocation(c,LOCATION_ONFIELD) 
-  and FilterPosition(c,POS_FACEDOWN)
-  then
-    return true
-  end
-end
-function UseHandDes() --when to use hand destruction
-local ncardsdraw=2 --this is what the opponent is going to draw
-return	(CardsMatchingFilter(AIHand(),TrickstarFilterAll)==0
-	or ncardsdraw*LycoDamage() + LightStageDamage() >= AI.GetPlayerLP(2)) --so i multiply it by lycos
-end
-function UseReincarnationOrDisturbance()
-local ncardsdraw=CardsMatchingFilter(OppHand())
-return (ncardsdraw*LycoDamage() + LightStageDamage() >= AI.GetPlayerLP(2))
-end
 
 function Use141()
-	return true
+	return NormalSummonCount(player_ai)>0
+	and CardsMatchingFilter(AIHand(),FilterID,27107590)==0
+end
+function UseAnte()
+	return CardsMatchingFilter(AIHand(),Level10Filter)>0
+end
+function Level10Filter(c)
+--used for Ante, mainly
+  return c.level==10
+end
+function SummonMaiden(mode)
+  if mode == 1 and #AIMon()==0)
+	then	return true
+  return false
 end
 function UseRaigeki()
 	return true
 end
-function UseDarkRoom()
-return true
-end
-
-function ActivateLyco(c,mode)
-	if mode == 1 then
-		return NormalSummonCount(player_ai)>0
-		or Duel.GetTurnCount()==1
-	end
-end
-
-
 
 function TimelordCard(cards,min,max,id,c,minTargets,maxTargets,triggeringID,triggeringCard)
   if id == 61283655 then --Candina
@@ -792,28 +545,20 @@ If no XXXCondition is given (or nil), it always return the first of those two pr
 if the XXXCondition fails it also returns the first of the two
 But if the condition is fulfilled it returns the second value.
 Example: if my CandinaCond fails, the priority to add candina to HAND will be 7
-If the condition is meet, it will be 4
+If the condition is met, it will be 4
 
 --]]
-[61283655] = {7,4,9,4,1,1,1,1,1,1,CandinaCond}, --Candina
-[35199656] = {8,5,7,3,1,1,1,1,1,1,LycoCond}, --Lycoris
-[98700941] = {9,3,8,2,1,1,1,1,1,1,LilyCond}, --Lilybell
-[35371948] = {9,1,1,1,1,1,1,1,1,1,LightStageCond}, --Lightstage
-[21076084] = {1,1,1,1,1,1,1,1,1,1,nil}, --Reincarnation
+[33015627] = {7,4,9,4,1,1,1,1,1,1,CandinaCond}, --Sandaion
+[7733560] = {8,5,7,3,1,1,1,1,1,1,LycoCond}, --Michion
+[34137269] = {9,3,8,2,1,1,1,1,1,1,LilyCond}, --Hailon
+[60222213] = {9,1,1,1,1,1,1,1,1,1,LightStageCond}, --Raphion
+[91712985] = {1,1,1,1,1,1,1,1,1,1,nil}, --Kamion
+[92435533] = {1,1,1,1,1,1,1,1,1,1,nil}, --Lazion
+
 
 [14558127] = {1,1,1,1,6,6,1,1,1,1,nil}, --Ash Blossom
 [59438930] = {1,1,1,1,6,6,1,1,1,1,nil}, --Ghost Ogre
-[94145021] = {1,1,1,1,1,1,1,1,1,1,nil}, --Droll & Lock
 
-[12580477] = {1,1,1,1,1,1,1,1,1,1,nil}, --Raigeki
-[73628505] = {1,1,1,1,1,1,1,1,1,1,nil}, --Terraforming
-[08267140] = {1,1,1,1,1,1,1,1,1,1,nil}, --Cosmic Cyclone
-[74519184] = {1,1,1,1,1,1,1,1,1,1,nil}, --Hand Destruction
-[85562745] = {1,1,1,1,1,1,1,1,1,1,nil}, --Dark Room of Nightmare
-[09952083] = {1,1,1,1,1,1,1,1,1,1,nil}, --Chain Summoning
-
-[36468556] = {1,1,1,1,1,1,1,1,1,1,nil}, --Ceasefire
-[77561728] = {1,1,1,1,1,1,1,1,1,1,nil}, --Disturbance Strategy
 [40605147] = {1,1,1,1,1,1,1,1,1,1,nil}, --Solemn Strike
 
 }
