@@ -531,29 +531,36 @@ function LightStageCond(loc)
 	end
 end
 end
+function MichionCond(loc,c)
+	if loc == PRIO_TOFIELD then
+			if FilterLocation(c,LOCATION_HAND) then
+				return NormalSummonCount(player_ai)>0
+		end
+	end
+end
 TimelordPriorityList={
---[[it took me sometime to get this working but it goes like this:
+--[[
 SYNTAX:[CardId]={hand,hand+,field,field+,grave,grave+,somewhereelse,somewhereelse,banished,banished+,XXXCondition}
 Locations are handled in pairs
-1 & 2 = PRIO_TOHAND
-3 & 4 = PRIO_TOFIELD
-5 & 6 = PRIO_TOGRAVE
-7 & 8 = PRIO_... (it's not certain)
-9 & 10 = PRIO_TOBANISHED
-
-If no XXXCondition is given (or nil), it always return the first of those two priorities for a given location
-if the XXXCondition fails it also returns the first of the two
-But if the condition is fulfilled it returns the second value.
-Example: if my CandinaCond fails, the priority to add candina to HAND will be 7
-If the condition is met, it will be 4
-
+	1 & 2 = PRIO_TOHAND
+	3 & 4 = PRIO_TOFIELD
+	5 & 6 = PRIO_TOGRAVE
+	7 & 8 = PRIO_... (it's not certain)
+	9 & 10 = PRIO_TOBANISHED
+--[[
+	If no XXXCondition is given (or nil), it always return the first of those two priorities for a given location
+	if the XXXCondition fails it also returns the first of the two
+	But if the condition is fulfilled it returns the second value.
+	Example: if my CandinaCond fails, the priority to add candina to HAND will be 7
+	If the condition is met, it will be 4
+	[33015627] = {7,4,9,4,1,1,1,1,1,1,CandinaCond}, --Sandaion --]]
 --]]
-[33015627] = {7,4,9,4,1,1,1,1,1,1,CandinaCond}, --Sandaion
-[7733560] = {8,5,7,3,1,1,1,1,1,1,LycoCond}, --Michion
-[34137269] = {9,3,8,2,1,1,1,1,1,1,LilyCond}, --Hailon
-[60222213] = {9,1,1,1,1,1,1,1,1,1,LightStageCond}, --Raphion
-[91712985] = {1,1,1,1,1,1,1,1,1,1,nil}, --Kamion
-[92435533] = {1,1,1,1,1,1,1,1,1,1,nil}, --Lazion
+[33015627] = {1,1,1,1,1,1,1,1,1,1,SandaionCond}, --Sandaion
+[7733560] = {1,1,5,9,1,1,1,1,1,1,MichionCond}, 	--Michion
+[34137269] = {1,1,1,1,1,1,1,1,1,1,HailonCond},	 --Hailon
+[60222213] = {1,1,1,1,1,1,1,1,1,1,RaphionCond}, --Raphion
+[91712985] = {1,1,1,1,1,1,1,1,1,1,nil}, 		--Kamion
+[92435533] = {1,1,1,1,1,1,1,1,1,1,nil},			 --Lazion
 
 
 [14558127] = {1,1,1,1,6,6,1,1,1,1,nil}, --Ash Blossom
